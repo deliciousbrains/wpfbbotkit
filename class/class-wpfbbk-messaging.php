@@ -135,14 +135,15 @@ class WPFBBotKit_Messaging {
 		), $set_typing_on );
 	}
 
-	function reply_with_buttons( $text, $buttons, $set_typing_on = false ) {
+	function reply_with_buttons( $text = '', $buttons, $set_typing_on = false ) {
 		return $this->reply( array(
 			'attachment' => array(
 				'type' => 'template',
-				'payload' => array_merge( array(
+				'payload' => array(
 					'template_type' => 'button',
 					'buttons' => $buttons,
-				), ( strlen( $text ) ) ? array( 'text' => $text ) : array() ),
+					'text' => $text,
+				),
 			),
 		), $set_typing_on );
 	}
