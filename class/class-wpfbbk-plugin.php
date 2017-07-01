@@ -9,6 +9,14 @@ class WPFBBotKit_Plugin {
 		$this->register_hooks();
 	}
 
+	function __get( $name ) {
+		if( property_exists( $this, $name) ) {
+			return $this->{ $name };
+		}
+
+		throw new Exception("Can not get property: {$name}", 1);
+	}
+
 	function register_hooks() {
 		add_action( 'admin_menu', array( $this, 'admin_menu' ) );
 		add_action( 'rest_api_init', array( $this, 'rest_api_init'), 10 );
