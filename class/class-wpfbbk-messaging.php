@@ -4,13 +4,14 @@
 
 class WPFBBotKit_Messaging {
 
-	protected $_sender;
-	protected $_message;
-	protected $_entry;
-	protected $_text;
-	protected $_postback;
-	protected $_page_access_token;
-	protected $_last_request;
+	protected $sender;
+	protected $message;
+	protected $entry;
+	protected $text;
+	protected $postback;
+	protected $page_access_token;
+	protected $plugin;
+	protected $last_request;
 
 	public $fb_api_base = 'https://graph.facebook.com/v2.6';
 	public $messages_api;
@@ -21,48 +22,48 @@ class WPFBBotKit_Messaging {
 	}
 
 	protected function init_props( $entry, $plugin ) {
-		$this->_page_access_token = $plugin->get_page_access_token();
+		$this->plugin = $plugin;
 
-		$this->_entry = $entry;
+		$this->page_access_token = $plugin->get_page_access_token();
 
-		$messaging = $entry;
-
+		$this->entry = $entry;
 
 		if ( isset( $entry['sender'] ) ) {
-			$this->_sender = $entry['sender'];
+			$this->sender = $entry['sender'];
 		}
 		if ( isset( $entry['message'] ) ) {
-			$this->_message = $entry['message'];
+			$this->message = $entry['message'];
 			if ( isset( $entry['message']['text'] ) ) {
-				$this->_text = $entry['message']['text'];
+				$this->text = $entry['message']['text'];
 			}
 			if ( isset( $entry['message']['quick_reply'] ) ) {
-				$this->_postback= $entry['message']['quick_reply']['payload'];
+				$this->postback= $entry['message']['quick_reply']['payload'];
 			}
 		}
 
 		if ( isset( $entry['postback'] ) ) {
-			$this->_postback = $entry['postback']['payload'];
+			$this->postback = $entry['postback']['payload'];
 		}
 
-		$this->messages_api = $this->fb_api_base . '/me/messages?access_token=' . urlencode( $this->_page_access_token );
-		$this->user_api = $this->fb_api_base . '/' . $this->_sender['id'] . '?access_token=' . urlencode( $this->_page_access_token );
+		$this->messages_api = $this->fb_api_base . '/me/messages?access_token=' . urlencode( $this->page_access_token );
+		$this->user_api = $this->fb_api_base . '/' . $this->sender['id'] . '?access_token=' . urlencode( $this->page_access_token );
 	}
 
 	function __get( $name ) {
-		if( property_exists( $this, '_' . $name) ) {
-			return $this->{ '_' . $name };
+		if( property_exists( $this, $name) ) {
+			return $this->{ $name };
 		}
 
 		throw new Exception("Can not get property: {$name}", 1);
 	}
 
 	/**
-	 * TODO: Appears not to work with WordPress
 	 * Attempts to send a 200 response to the requester efore continuing execution to
 	 * ensure that Facebook doesn't retry the webhook while we're processing. It is
 	 * recommended that you call `exit()` when done responding in order to prevent
 	 * warnings from other parts of WP that might try to send headers
+	 *
+	 * TODO: Appears not to work with WordPress
 	 */
 	protected function send_200_continue() {
 		ob_start();
@@ -77,13 +78,12 @@ class WPFBBotKit_Messaging {
 	}
 
 	function api_send( $method, $url, $data = null ) {
-
 		if( ! in_array( $method, array( 'get', 'post') ) ) {
 			return new WP_Error( $this->plugin->string_ns . 'type_error', '$method must be one of \'get\', \'post\'' );
 		}
 
 		$req = Requests::{$method}( $url, array(), $data );
-		$this->_last_request = $req;
+		$this->last_request = $req;
 
 		$decoded_body = json_decode( $req->body );
 		$response_body = $decoded_body ? $decoded_body : $req->body;
@@ -101,19 +101,19 @@ class WPFBBotKit_Messaging {
 			return new WP_Error( $this->plugin->string_ns . 'type_error', 'Reply must be an array' );
 		}
 
-		$reply['recipient'] = $this->_sender;
+		$reply['recipient'] = $this->sender;
 
 		return $this->api_send( 'post', $this->messages_api, $reply );
 	}
 
 	function set_typing_on() {
-		return $this->_reply( array(
+		return $this->reply( array(
 			'sender_action' => 'typing_on',
 		) );
 	}
 
 	function reply( $message, $set_typing_on = false ) {
-		$return = $this->_reply( array( 'message' => $message ));
+		$return = $this->_reply( array( 'message' => $message ) );
 
 		if( $set_typing_on && true === $return ) {
 			$this->set_typing_on();
