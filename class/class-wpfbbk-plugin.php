@@ -7,14 +7,11 @@ class WPFBBotKit_Plugin {
 
 	function __construct() {
 		$this->register_hooks();
-
-		$this->api_namespace = apply_filters( $this->string_ns . 'api_namespace', 'wpfbbk' );
 	}
 
 	function register_hooks() {
 		add_action( 'admin_menu', array( $this, 'admin_menu' ) );
-		add_action( 'rest_api_init', array( $this, 'rest_api_init') );
-
+		add_action( 'rest_api_init', array( $this, 'rest_api_init'), 10 );
 		add_action( 'admin_init', array( $this, 'save_page_access_token' ) );
 	}
 
@@ -39,9 +36,7 @@ class WPFBBotKit_Plugin {
 	}
 
 	function get_page_access_token() {
-		if ( $this->access_token ) {
-
-		} else {
+		if ( ! $this->access_token ) {
 			$this->access_token = get_site_option( $this->string_ns . 'page_access_token' );
 		}
 		return $this->access_token;
@@ -62,10 +57,26 @@ class WPFBBotKit_Plugin {
 	}
 
 	function rest_api_init() {
-		register_rest_route( $this->api_namespace, 'webhook', array(
+		$webhook_url = $this->get_webhook_url( true );
+		register_rest_route( $webhook_url['namespace'], $webhook_url['endpoint'], array(
 	      'methods' => 'GET,POST',
 	      'callback' => array( $this, 'receive_api_request' ),
 	    ) );
+	}
+
+	function get_webhook_url( $parts = false ) {
+		$base_url  = network_site_url();
+		$namespace = apply_filters( $this->string_ns . 'api_namespace', trim( $this->string_ns, '_') );
+		$endpoint  = apply_filters( $this->string_ns . 'api_endpoint', 'webhook' );
+		$rest_prefix = rest_get_url_prefix();
+
+		$url_parts = compact( 'base_url', 'rest_prefix', 'namespace', 'endpoint' );
+
+		if( $parts ) {
+			return $url_parts;
+		}
+
+		return implode( '/', $url_parts );
 	}
 
 	function receive_api_request( $req ) {
