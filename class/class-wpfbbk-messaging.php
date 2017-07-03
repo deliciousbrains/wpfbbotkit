@@ -165,6 +165,31 @@ class WPFBBotKit_Messaging {
 		), $set_typing_on );
 	}
 
+	function reply_with_generic_template_link( $title, $subtitle, $image, $url, $buttons = null, $set_typing_on = false ) {
+		$reply = array(
+			'attachment' => array(
+				'type' => 'template',
+				'payload' => array(
+					'template_type' => 'generic',
+					'elements' => array(
+						array(
+							'title' => $title,
+							'subtitle' => $subtitle,
+							'image_url' => $image,
+							'default_action' => array(
+								'type' => 'web_url',
+								'url' => $url
+							),
+							'buttons' => $buttons,
+						)
+					)
+				)
+			)
+		);
+
+		return $this->reply( $reply, $set_typing_on );
+	}
+
 	function get_user_info( $fields = 'all' ) {
 		if( 'all' === $fields ) {
 			$fields = 'first_name,last_name,profile_pic,locale,timezone,gender';
