@@ -38,25 +38,25 @@ class WPFBBotKit_Plugin {
 	}
 
 	function save_page_access_token() {
-		if ( isset( $_POST[ $this->string_ns . 'access_token'] ) && check_admin_referer( $this->string_ns . 'save_page_access_token' ) )  {
-			$this->set_page_access_token( $_POST[ $this->string_ns . 'access_token'] );
+		if ( isset( $_POST[ 'wpfbbk_access_token'] ) && check_admin_referer( 'wpfbbk_save_page_access_token' ) )  {
+			$this->set_page_access_token( $_POST[ 'wpfbbk_access_token'] );
 		}
 	}
 
 	function get_page_access_token() {
 		if ( ! $this->access_token ) {
-			$this->access_token = get_site_option( $this->string_ns . 'page_access_token' );
+			$this->access_token = get_site_option( 'wpfbbk_page_access_token' );
 		}
 		return $this->access_token;
 	}
 
 	function set_page_access_token( $token ) {
 		$this->access_token = $token;
-		return update_site_option( $this->string_ns . 'page_access_token', trim( $token ) );
+		return update_site_option( 'wpfbbk_page_access_token', trim( $token ) );
 	}
 
 	function get_verification_string() {
-		$transient_name = $this->string_ns . 'verification_string';
+		$transient_name = 'wpfbbk_verification_string';
 		if ( ! $verification_string = get_site_transient( $transient_name ) ) {
 			$verification_string = md5( $this->string_ns . time() );
 			set_site_transient( $transient_name, $verification_string );
@@ -74,8 +74,8 @@ class WPFBBotKit_Plugin {
 
 	function get_webhook_url( $parts = false ) {
 		$base_url  = network_site_url();
-		$namespace = apply_filters( $this->string_ns . 'api_namespace', trim( $this->string_ns, '_') );
-		$endpoint  = apply_filters( $this->string_ns . 'api_endpoint', 'webhook' );
+		$namespace = apply_filters( 'wpfbbk_api_namespace', trim( $this->string_ns, '_') );
+		$endpoint  = apply_filters( 'wpfbbk_api_endpoint', 'webhook' );
 		$rest_prefix = rest_get_url_prefix();
 
 		$url_parts = compact( 'base_url', 'rest_prefix', 'namespace', 'endpoint' );
@@ -88,7 +88,7 @@ class WPFBBotKit_Plugin {
 	}
 
 	function receive_api_request( $req ) {
-		do_action( $this->string_ns . 'request_received', $req );
+		do_action( 'wpfbbk_request_received', $req );
 
 		$method  = $req->get_method();
 
@@ -113,7 +113,7 @@ class WPFBBotKit_Plugin {
 						$entry['messaging'] = array( $entry['messaging'] );
 					}
 					foreach( $entry['messaging'] as $message ) {
-						do_action( $this->string_ns . 'message_received', new WPFBBotKit_Messaging( $message, $this ) );
+						do_action( 'wpfbbk_message_received', new WPFBBotKit_Messaging( $message, $this ) );
 					}
 				}
 			}
@@ -123,7 +123,7 @@ class WPFBBotKit_Plugin {
 	function verify_webhook_subscription( $req ) {
 		if( $this->get_verification_string() === $req['hub_verify_token'] ) {
 			http_response_code( 200 );
-			update_site_option( $this->string_ns . 'verified', true );
+			update_site_option( 'wpfbbk_verified', true );
 			exit( $req['hub_challenge'] );
 		} else {
 			error_log( 'Recieved invalid webhook validation request. Expected: "' . $this->get_verification_string . '" Received: "' . $req['hub_verify_token'] . '"' );

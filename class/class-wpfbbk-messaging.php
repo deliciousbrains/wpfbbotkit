@@ -79,7 +79,7 @@ class WPFBBotKit_Messaging {
 
 	function api_send( $method, $url, $data = null ) {
 		if( ! in_array( $method, array( 'get', 'post') ) ) {
-			return new WP_Error( $this->plugin->string_ns . 'type_error', '$method must be one of \'get\', \'post\'' );
+			return new WP_Error( 'wpfbbk_type_error', '$method must be one of \'get\', \'post\'' );
 		}
 
 		/**
@@ -105,17 +105,17 @@ class WPFBBotKit_Messaging {
 		$decoded_body = json_decode( $req->body );
 		$response_body = $decoded_body ? $decoded_body : $req->body;
 
-		if( $req->success ) {
+		if ( $req->success ) {
 			return $response_body;
 		} else {
-			return new WP_Error( $this->plugin->string_ns . 'fb_api_error', $response_body );
+			return new WP_Error( 'wpfbbk_fb_api_error', $response_body );
 		}
 	}
 
 	function _reply( $reply ) {
 		if( ! is_array( $reply ) ) {
 
-			return new WP_Error( $this->plugin->string_ns . 'type_error', 'Reply must be an array' );
+			return new WP_Error( 'wpfbbk_type_error', 'Reply must be an array' );
 		}
 
 		$reply['recipient'] = $this->sender;
