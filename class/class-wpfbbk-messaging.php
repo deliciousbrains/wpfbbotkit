@@ -82,6 +82,23 @@ class WPFBBotKit_Messaging {
 			return new WP_Error( $this->plugin->string_ns . 'type_error', '$method must be one of \'get\', \'post\'' );
 		}
 
+		/**
+		 * Opportunity to hijack API Requests.
+		 *
+		 * Ideal for sending requests via a queue rather than blocking execution by sending immediately.
+		 *
+		 * @param bool   $request_handled  Return `true` to skip sending immediately via Requests API
+		 * @param string $method           Request method (get or post)
+		 * @param string $url              Request URL
+		 * @param array  $data             Request data
+		 *
+		 */
+		$request_handled = apply_filters( 'wpfbbk_before_send_request', false, $method, $url, $data );
+		if ( false !== $request_handled ) {
+			error_log( print_r( [ $request_handled ], 1 ) );
+			return $request_handled;
+		}
+
 		$req = Requests::{$method}( $url, array(), $data );
 		$this->last_request = $req;
 
