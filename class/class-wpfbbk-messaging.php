@@ -1,7 +1,5 @@
 <?php
 
-// TODO: replies should be queued and run on separate requests if possible, as sending too many replies could result in an FB timeout/resend
-
 class WPFBBotKit_Messaging {
 
 	protected $sender;
@@ -37,7 +35,7 @@ class WPFBBotKit_Messaging {
 				$this->text = $entry['message']['text'];
 			}
 			if ( isset( $entry['message']['quick_reply'] ) ) {
-				$this->postback= $entry['message']['quick_reply']['payload'];
+				$this->postback = $entry['message']['quick_reply']['payload'];
 			}
 		}
 
@@ -46,15 +44,15 @@ class WPFBBotKit_Messaging {
 		}
 
 		$this->messages_api = $this->fb_api_base . '/me/messages?access_token=' . urlencode( $this->page_access_token );
-		$this->user_api = $this->fb_api_base . '/' . $this->sender['id'] . '?access_token=' . urlencode( $this->page_access_token );
+		$this->user_api     = $this->fb_api_base . '/' . $this->sender['id'] . '?access_token=' . urlencode( $this->page_access_token );
 	}
 
 	function __get( $name ) {
-		if( property_exists( $this, $name) ) {
-			return $this->{ $name };
+		if ( property_exists( $this, $name ) ) {
+			return $this->{$name};
 		}
 
-		throw new Exception("Can not get property: {$name}", 1);
+		throw new Exception( "Can not get property: {$name}", 1 );
 	}
 
 	/**
@@ -63,22 +61,22 @@ class WPFBBotKit_Messaging {
 	 * recommended that you call `exit()` when done responding in order to prevent
 	 * warnings from other parts of WP that might try to send headers
 	 *
-	 * TODO: Appears not to work with WordPress
+	 * TODO: Appears not to work with WordPress, but this would be really nice to have
 	 */
 	protected function send_200_continue() {
 		ob_start();
 		echo '0';
 		http_response_code( 200 );
-		header('Content-Encoding: none');
-		header('Connection: close');
-		header('Content-Length: ' . ob_get_length() );
+		header( 'Content-Encoding: none' );
+		header( 'Connection: close' );
+		header( 'Content-Length: ' . ob_get_length() );
 		ob_end_flush();
 		flush();
 		session_write_close();
 	}
 
 	function api_send( $method, $url, $data = null ) {
-		if( ! in_array( $method, array( 'get', 'post') ) ) {
+		if ( ! in_array( $method, array( 'get', 'post' ) ) ) {
 			return new WP_Error( 'wpfbbk_type_error', '$method must be one of \'get\', \'post\'' );
 		}
 
@@ -87,22 +85,23 @@ class WPFBBotKit_Messaging {
 		 *
 		 * Ideal for sending requests via a queue rather than blocking execution by sending immediately.
 		 *
-		 * @param bool   $request_handled  Return `true` to skip sending immediately via Requests API
-		 * @param string $method           Request method (get or post)
-		 * @param string $url              Request URL
-		 * @param array  $data             Request data
+		 * @param bool   $request_handled Return `true` to skip sending immediately via Requests API
+		 * @param string $method          Request method (get or post)
+		 * @param string $url             Request URL
+		 * @param array  $data            Request data
 		 *
 		 */
 		$request_handled = apply_filters( 'wpfbbk_before_send_request', false, $method, $url, $data );
 		if ( false !== $request_handled ) {
 			error_log( print_r( [ $request_handled ], 1 ) );
+
 			return $request_handled;
 		}
 
-		$req = Requests::{$method}( $url, array(), $data );
+		$req                = Requests::{$method}( $url, array(), $data );
 		$this->last_request = $req;
 
-		$decoded_body = json_decode( $req->body );
+		$decoded_body  = json_decode( $req->body );
 		$response_body = $decoded_body ? $decoded_body : $req->body;
 
 		if ( $req->success ) {
@@ -113,7 +112,7 @@ class WPFBBotKit_Messaging {
 	}
 
 	function _reply( $reply ) {
-		if( ! is_array( $reply ) ) {
+		if ( ! is_array( $reply ) ) {
 
 			return new WP_Error( 'wpfbbk_type_error', 'Reply must be an array' );
 		}
@@ -132,7 +131,7 @@ class WPFBBotKit_Messaging {
 	function reply( $message, $set_typing_on = false ) {
 		$return = $this->_reply( array( 'message' => $message ) );
 
-		if( $set_typing_on && true === $return ) {
+		if ( $set_typing_on && true === $return ) {
 			$this->set_typing_on();
 		}
 
@@ -146,7 +145,7 @@ class WPFBBotKit_Messaging {
 	function reply_with_image_url( $url, $set_typing_on = false ) {
 		return $this->reply( array(
 			'attachment' => array(
-				'type' => 'image',
+				'type'    => 'image',
 				'payload' => array( 'url' => $url ),
 			),
 		), $set_typing_on );
@@ -155,11 +154,11 @@ class WPFBBotKit_Messaging {
 	function reply_with_buttons( $text = '', $buttons, $set_typing_on = false ) {
 		return $this->reply( array(
 			'attachment' => array(
-				'type' => 'template',
+				'type'    => 'template',
 				'payload' => array(
 					'template_type' => 'button',
-					'buttons' => $buttons,
-					'text' => $text,
+					'buttons'       => $buttons,
+					'text'          => $text,
 				),
 			),
 		), $set_typing_on );
@@ -168,36 +167,35 @@ class WPFBBotKit_Messaging {
 	function reply_with_generic_template_link( $title, $subtitle, $image, $url, $buttons = null, $set_typing_on = false ) {
 		$reply = array(
 			'attachment' => array(
-				'type' => 'template',
+				'type'    => 'template',
 				'payload' => array(
 					'template_type' => 'generic',
-					'elements' => array(
+					'elements'      => array(
 						array(
-							'title' => $title,
-							'subtitle' => $subtitle,
-							'image_url' => $image,
+							'title'          => $title,
+							'subtitle'       => $subtitle,
+							'image_url'      => $image,
 							'default_action' => array(
 								'type' => 'web_url',
-								'url' => $url
+								'url'  => $url,
 							),
-							'buttons' => $buttons,
-						)
-					)
-				)
-			)
+							'buttons'        => $buttons,
+						),
+					),
+				),
+			),
 		);
 
 		return $this->reply( $reply, $set_typing_on );
 	}
 
 	function get_user_info( $fields = 'all' ) {
-		if( 'all' === $fields ) {
+		if ( 'all' === $fields ) {
 			$fields = 'first_name,last_name,profile_pic,locale,timezone,gender';
 		}
 
 		return $this->api_send( 'get', $this->user_api . '&fields=' . urlencode( $fields ) );
 	}
-
 
 
 }
