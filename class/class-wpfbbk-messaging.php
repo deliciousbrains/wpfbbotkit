@@ -7,6 +7,7 @@ class WPFBBotKit_Messaging {
 	protected $entry;
 	protected $text;
 	protected $postback;
+	protected $payload_type;
 	protected $page_access_token;
 	protected $plugin;
 	protected $last_request;
@@ -16,15 +17,9 @@ class WPFBBotKit_Messaging {
 	public $user_api;
 
 	function __construct( $entry, $plugin, $send_200 = true ) {
-		$this->init_props( $entry, $plugin );
-	}
-
-	protected function init_props( $entry, $plugin ) {
-		$this->plugin = $plugin;
-
+		$this->plugin            = $plugin;
 		$this->page_access_token = $plugin->get_page_access_token();
-
-		$this->entry = $entry;
+		$this->entry             = $entry;
 
 		if ( isset( $entry['sender'] ) ) {
 			$this->sender = $entry['sender'];
@@ -35,12 +30,14 @@ class WPFBBotKit_Messaging {
 				$this->text = $entry['message']['text'];
 			}
 			if ( isset( $entry['message']['quick_reply'] ) ) {
-				$this->postback = $entry['message']['quick_reply']['payload'];
+				$this->postback     = $entry['message']['quick_reply']['payload'];
+				$this->payload_type = 'quick_reply';
 			}
 		}
 
 		if ( isset( $entry['postback'] ) ) {
-			$this->postback = $entry['postback']['payload'];
+			$this->postback     = $entry['postback']['payload'];
+			$this->payload_type = 'postback';
 		}
 
 		$this->messages_api = $this->fb_api_base . '/me/messages?access_token=' . urlencode( $this->page_access_token );
