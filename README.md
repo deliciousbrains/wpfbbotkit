@@ -7,7 +7,7 @@ Platform and send responses from your bot via a simplified API.
 ## Getting Started
 
 1. Download or clone this repo and install via the WordPress plugin installer. 
-2. Access WPFBBotKit Settings via the "Messenger Bot" menu option under "Settings" in the wp-admin.
+2. Access WPFBBotKit Settings via the "WPFBBotKit" menu option under "Settings" in the wp-admin.
 3. Follow the Messenger Platform [setup guide](https://developers.facebook.com/docs/messenger-platform/guides/setup)
 to set up your bot using the Webhook URL and Verification String from the WPFBBotKit Settings page.
 
@@ -68,7 +68,7 @@ add_action( 'wpfbbk_message_received', function( $M ) {
 ```
 
 Additionally, a `wpfbbk_request_received` action is fired whenever the webhook url is hit and provides an instance
- of the [WP_REST_Server](https://developer.wordpress.org/reference/classes/wp_rest_server/) object for the request. 
+ of the [WP_REST_Request](https://developer.wordpress.org/reference/classes/wp_rest_request/) object for the request. 
  
  ```php
  // debug requests sent to webhook

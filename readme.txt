@@ -17,7 +17,7 @@ Platform and send responses from your bot via a simplified API.
 == Installation ==
 
 1. Install WPFBBotKit using WordPress' built-in installer
-2. Access WPFBBotKit Settings via the "Messenger Bot" menu option under "Settings" in the wp-admin.
+2. Access WPFBBotKit Settings via the "WPFBBotKit" menu option under "Settings" in the wp-admin.
 3. Follow the Messenger Platform [setup guide](https://developers.facebook.com/docs/messenger-platform/guides/setup)
 to set up your bot using the Webhook URL and Verification String from the WPFBBotKit Settings page.
 4. Receive and respond to messages using the `wpfbbk_message_received` action.
